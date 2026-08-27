@@ -1,0 +1,5 @@
+Control,Auditor assessment,Evidence reference,Finding
+Governance,Reviewed,Policy GOV-12,None
+Data quality,Reviewed,Dataset card v3,None
+Model performance,Needs evidence,Monitoring report,Provide current drift threshold
+Human oversight,Reviewed,Operations playbook,None

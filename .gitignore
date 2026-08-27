@@ -1,0 +1,7 @@
+template/
+.codex_workbook_build/
+.edge-qa/
+admin-qa.png
+__pycache__/
+*.pyc
+

@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Proofline — a playable responsible AI review workflow prototype."
+    />
+    <title>Proofline — Responsible AI reviews</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#" aria-label="Proofline home">
+          <span class="brand-mark" aria-hidden="true">
+            <i></i><i></i><i></i><i></i>
+          </span>
+          <span>Proofline</span>
+        </a>
+
+        <div class="workspace-label">Workspace</div>
+        <nav class="nav-list" aria-label="Primary navigation">
+          <button class="nav-item active" data-nav="overview">
+            <span class="nav-icon">⌂</span><span>Overview</span>
+          </button>
+          <button class="nav-item" data-nav="reviews">
+            <span class="nav-icon">▤</span><span>Reviews</span>
+            <span class="nav-count" id="reviewCount">3</span>
+          </button>
+          <button class="nav-item" data-nav="registry">
+            <span class="nav-icon">◇</span><span>AI Registry</span>
+            <span class="nav-count" id="registryCount">3</span>
+          </button>
+          <button class="nav-item" data-nav="notifications">
+            <span class="nav-icon">◌</span><span>Notifications</span>
+            <span class="status-dot"></span>
+          </button>
+          <button class="nav-item" data-nav="news">
+            <span class="nav-icon">◫</span><span>News</span>
+            <span class="nav-count" id="workspaceNewsCount">2</span>
+          </button>
+          <button class="nav-item" data-nav="library">
+            <span class="nav-icon">▥</span><span>Library</span>
+          </button>
+          <button class="nav-item admin-only" data-nav="configuration">
+            <span class="nav-icon">⌘</span><span>Configuration</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="signal-card">
+            <div class="signal-head">
+              <span>Review health</span>
+              <span class="live-dot">Live</span>
+            </div>
+            <strong id="healthScore">92%</strong>
+            <div class="signal-track"><i style="width: 92%"></i></div>
+            <small>Across your workspace</small>
+          </div>
+          <button class="profile-button" id="profileButton">
+            <span class="avatar" id="profileAvatar">AM</span>
+            <span><strong id="profileName">Aarav Mehta</strong><small id="profileRole">Submitter</small></span>
+            <span class="more">•••</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-stage">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="roleEyebrow">SUBMITTER WORKSPACE</p>
+            <h1 id="pageTitle">Your AI reviews</h1>
+          </div>
+          <div class="top-actions">
+            <div class="role-switcher" id="roleSwitcher">
+              <span class="role-switcher-label">View as</span>
+              <button class="role-trigger" id="roleTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <strong id="roleTriggerLabel">Submitter</strong><i aria-hidden="true"></i>
+              </button>
+              <div class="role-menu" id="roleMenu" role="listbox" aria-label="Switch workspace role" hidden>
+                <p>WORKSPACE VIEW</p>
+                <button class="role-option active" type="button" role="option" aria-selected="true" data-role-option="user">
+                  <span class="role-option-icon user">S</span><span><strong>Submitter</strong><small>Submit and track reviews</small></span><b>✓</b>
+                </button>
+                <button class="role-option" type="button" role="option" aria-selected="false" data-role-option="auditor">
+                  <span class="role-option-icon auditor">A</span><span><strong>Auditor</strong><small>Assess evidence and decide</small></span><b>✓</b>
+                </button>
+                <button class="role-option" type="button" role="option" aria-selected="false" data-role-option="admin">
+                  <span class="role-option-icon admin">C</span><span><strong>Admin</strong><small>Configure policy and routing</small></span><b>✓</b>
+                </button>
+              </div>
+            </div>
+            <button class="icon-button" id="notificationButton" aria-label="Open notifications">
+              <span>◔</span><i></i>
+            </button>
+            <button class="primary-button" id="newReviewButton">
+              <span>＋</span> New review
+            </button>
+          </div>
+        </header>
+
+        <section id="userView" class="role-view active">
+          <div class="hero-grid">
+            <article class="action-hero">
+              <div class="hero-copy">
+                <p class="eyebrow light">NEXT STEP</p>
+                <h2>Bring your AI system<br />into the clear.</h2>
+                <p>Upload the assessment workbook. We’ll validate it before an auditor receives the review.</p>
+                <div class="hero-buttons">
+                  <button class="inverse-button" id="heroUploadButton">Start new use case <span>↗</span></button>
+                  <button class="hero-link-button" id="continuePocButton">Continue approved POC <span>→</span></button>
+                </div>
+              </div>
+              <div class="evidence-orbit" aria-hidden="true">
+                <span class="orbit-line one"></span>
+                <span class="orbit-line two"></span>
+                <span class="orbit-line three"></span>
+                <div class="sheet sheet-a"><b>A</b><i></i><i></i><i></i></div>
+                <div class="sheet sheet-b"><b>I</b><i></i><i></i><i></i></div>
+                <div class="sheet sheet-c"><b>✓</b><i></i><i></i><i></i></div>
+              </div>
+            </article>
+
+            <article class="metric-card due-card">
+              <div class="card-label"><span class="mini-icon amber">◷</span> Action needed</div>
+              <strong>1</strong>
+              <p>Evidence request due Friday</p>
+              <button class="text-button" data-open-review="RAI-2041">View request <span>→</span></button>
+            </article>
+
+            <article class="metric-card">
+              <div class="card-label"><span class="mini-icon blue">◎</span> Open reviews</div>
+              <strong id="openReviewMetric">3</strong>
+              <p>1 progressing this week</p>
+              <div class="tiny-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            </article>
+          </div>
+
+          <section class="panel review-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">ACTIVE WORK</p>
+                <h2>Reviews in motion</h2>
+              </div>
+              <button class="secondary-button" data-nav-jump="reviews">View all reviews</button>
+            </div>
+            <div class="review-list" id="userReviewList"></div>
+          </section>
+        </section>
+
+        <section id="auditorView" class="role-view">
+          <div class="auditor-summary">
+            <article class="summary-card critical">
+              <p>BREACH RISK</p><strong>2</strong><span>Reviews within 24 hours</span>
+            </article>
+            <article class="summary-card">
+              <p>MY QUEUE</p><strong>8</strong><span>4 require attention</span>
+            </article>
+            <article class="summary-card">
+              <p>AVG. REVIEW TIME</p><strong>3.8d</strong><span class="good">↓ 0.6d this month</span>
+            </article>
+            <article class="summary-card">
+              <p>CLOSURE RATE</p><strong>94%</strong><span>Within configured SLA</span>
+            </article>
+          </div>
+
+          <section class="panel queue-panel">
+            <div class="panel-heading queue-heading">
+              <div>
+                <p class="eyebrow">PRIORITY INBOX</p>
+                <h2>What needs your judgment</h2>
+              </div>
+              <div class="filter-row">
+                <button class="filter-chip active" data-filter="all">All</button>
+                <button class="filter-chip" data-filter="urgent">Urgent</button>
+                <button class="filter-chip" data-filter="evidence">Evidence</button>
+              </div>
+            </div>
+            <div class="queue-table">
+              <div class="queue-row queue-header">
+                <span>Review</span><span>Lifecycle</span><span>Risk</span><span>Stage</span><span>SLA</span><span></span>
+              </div>
+              <div id="auditorQueue"></div>
+            </div>
+          </section>
+
+          <div class="auditor-lower">
+            <section class="panel workload-panel">
+              <div class="panel-heading compact"><div><p class="eyebrow">CAPACITY</p><h2>Team workload</h2></div><button class="icon-button">•••</button></div>
+              <div class="workload-list">
+                <div><span class="avatar violet">PS</span><p><strong>Priya Shah</strong><small>5 active</small></p><meter min="0" max="8" value="5"></meter></div>
+                <div><span class="avatar teal">JL</span><p><strong>Jon Lee</strong><small>7 active</small></p><meter min="0" max="8" value="7"></meter></div>
+                <div><span class="avatar blue">MN</span><p><strong>Maya Nair</strong><small>3 active</small></p><meter min="0" max="8" value="3"></meter></div>
+              </div>
+            </section>
+            <section class="panel activity-panel">
+              <div class="panel-heading compact"><div><p class="eyebrow">AUDIT LOG</p><h2>Recent decisions</h2></div></div>
+              <div class="activity-line"><i class="green"></i><p><strong>RAI-2018 closed</strong><span>Control evidence accepted · 22m ago</span></p></div>
+              <div class="activity-line"><i class="orange"></i><p><strong>Finding escalated</strong><span>RAI-2033 · 1h ago</span></p></div>
+              <div class="activity-line"><i class="blue"></i><p><strong>Workbook validated</strong><span>RAI-2047 · 2h ago</span></p></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="adminView" class="role-view">
+          <div class="admin-command-bar">
+            <div>
+              <span class="control-plane-kicker"><i></i> Platform control plane</span>
+              <p>Changes are versioned and recorded in the audit log.</p>
+            </div>
+            <div class="admin-command-actions">
+              <span class="draft-state" id="adminDraftState">No unpublished changes</span>
+              <button class="primary-button" id="saveConfigButton">Publish changes</button>
+            </div>
+          </div>
+
+          <div class="admin-control-layout">
+            <aside class="panel admin-rail" aria-label="Admin configuration sections">
+              <p class="eyebrow">CONTROL AREAS</p>
+              <button class="admin-tab active" data-admin-tab="process"><span class="admin-tab-icon">⌘</span><span><strong>Process</strong><small>Lifecycle, stages & routing</small></span><b>5</b></button>
+              <button class="admin-tab" data-admin-tab="registry"><span class="admin-tab-icon">◇</span><span><strong>Registry fields</strong><small>Schema, rules & options</small></span><b id="registryFieldTabCount">5</b></button>
+              <button class="admin-tab" data-admin-tab="news"><span class="admin-tab-icon">N</span><span><strong>News</strong><small>Announcements & targeting</small></span><b id="newsTabCount">3</b></button>
+              <button class="admin-tab" data-admin-tab="library"><span class="admin-tab-icon">▤</span><span><strong>Library</strong><small>Policies, templates & guides</small></span><b id="libraryTabCount">4</b></button>
+              <button class="admin-tab" data-admin-tab="groups"><span class="admin-tab-icon">◎</span><span><strong>Groups</strong><small>Directory access mappings</small></span><b id="groupTabCount">4</b></button>
+              <div class="directory-mini">
+                <div><span class="directory-logo">ID</span><p><strong>Microsoft Entra ID</strong><small><i></i> Connected · 6 min ago</small></p></div>
+                <button data-admin-tab-jump="groups">Manage connection →</button>
+              </div>
+            </aside>
+
+            <div class="admin-workspace">
+              <section class="admin-pane active" data-admin-pane="process">
+                <div class="admin-pane-head">
+                  <div><p class="eyebrow">PROCESS GOVERNANCE</p><h2>Review lifecycle</h2><p>Control each stage, its owner group, decision rights, and service window.</p></div>
+                  <button class="secondary-button" id="addStageButton">＋ Add stage</button>
+                </div>
+                <div class="process-scope">
+                  <label><span>Lifecycle</span><select id="lifecycleSelect"><option>Standard AI review</option><option>Expedited low-risk review</option><option>High-risk model review</option></select></label>
+                  <div><span>VERSION</span><strong>v4 · Active</strong></div>
+                  <div><span>TARGET CYCLE</span><strong id="cycleDays">15 days</strong></div>
+                  <button class="icon-button" aria-label="More lifecycle actions">•••</button>
+                </div>
+                <div class="process-map" id="timelineBuilder"></div>
+                <div class="process-foot">
+                  <button class="dashed-action" id="addStageInlineButton">＋ Add another stage</button>
+                  <p><span>↳</span> Process edits create a new version. In-flight reviews remain on their current version.</p>
+                </div>
+                <div class="admin-lower-grid">
+                  <section class="panel inset-panel">
+                    <div class="panel-heading compact"><div><p class="eyebrow">AUTOMATION</p><h2>Escalations & notices</h2></div></div>
+                    <label class="toggle-row"><span><strong>SLA at risk</strong><small>Notify owner group at 80% elapsed</small></span><input type="checkbox" checked /><i></i></label>
+                    <label class="toggle-row"><span><strong>Overdue escalation</strong><small>Escalate to platform admin after 24 hours</small></span><input type="checkbox" checked /><i></i></label>
+                    <label class="toggle-row"><span><strong>Daily digest</strong><small>Weekdays at 09:00 local time</small></span><input type="checkbox" /><i></i></label>
+                  </section>
+                  <section class="panel inset-panel">
+                    <div class="panel-heading compact"><div><p class="eyebrow">DEFAULTS</p><h2>Assignment policy</h2></div></div>
+                    <label class="field-label">Routing strategy<select><option>Group queue, then balanced workload</option><option>Round robin within owner group</option><option>Manual assignment</option></select></label>
+                    <label class="field-label">Fallback owner<select><option>Responsible AI Office</option><option>Platform administrators</option></select></label>
+                  </section>
+                </div>
+              </section>
+
+              <section class="admin-pane" data-admin-pane="registry">
+                <div class="admin-pane-head"><div><p class="eyebrow">REGISTRY GOVERNANCE</p><h2>AI Registry fields</h2><p>Control which details every AI use case records. Changes apply incrementally to new and updated records.</p></div><button class="primary-button" id="addRegistryFieldButton">＋ Add field</button></div>
+                <div class="registry-schema-banner"><span class="schema-mark">v3</span><div><strong>Active registry schema</strong><p>Review submission requires a registered AI use case. Existing records keep their values when the schema changes.</p></div><span><b id="requiredRegistryFieldCount">5</b> required fields</span></div>
+                <div class="registry-field-table"><div class="registry-field-row registry-field-header"><span>Field</span><span>Input type</span><span>Options / behavior</span><span>Required</span><span></span></div><div id="registryFieldAdminList"></div></div>
+                <button class="dashed-action registry-add-inline" id="addRegistryFieldInlineButton">＋ Add another registry field</button>
+              </section>
+
+              <section class="admin-pane" data-admin-pane="news">
+                <div class="admin-pane-head"><div><p class="eyebrow">COMMUNICATIONS</p><h2>News control</h2><p>Publish operational updates and target them by organizational group.</p></div><button class="primary-button" id="createNewsButton">＋ Create news</button></div>
+                <div class="content-toolbar"><label class="admin-search"><span>⌕</span><input type="search" id="newsSearch" placeholder="Search news" /></label><div class="filter-row"><button class="content-filter active" data-news-filter="all">All</button><button class="content-filter" data-news-filter="published">Published</button><button class="content-filter" data-news-filter="draft">Drafts</button></div></div>
+                <div class="content-list" id="newsAdminList"></div>
+              </section>
+
+              <section class="admin-pane" data-admin-pane="library">
+                <div class="admin-pane-head"><div><p class="eyebrow">KNOWLEDGE GOVERNANCE</p><h2>Library</h2><p>Maintain one governed source for policies, templates, and implementation guidance.</p></div><button class="primary-button" id="addLibraryButton">＋ Add resource</button></div>
+                <div class="library-overview"><div><span>4</span><p><strong>Active resources</strong><small>Across 3 collections</small></p></div><div><span>2</span><p><strong>Review due</strong><small>Within 30 days</small></p></div><div><span>100%</span><p><strong>Named owners</strong><small>Every item accountable</small></p></div></div>
+                <div class="content-toolbar"><label class="admin-search"><span>⌕</span><input type="search" id="librarySearch" placeholder="Search resources" /></label><select id="libraryCollectionFilter"><option value="all">All collections</option><option>Policy</option><option>Template</option><option>Guidance</option></select></div>
+                <div class="library-table"><div class="library-row library-header"><span>Resource</span><span>Collection</span><span>Audience</span><span>Owner / review</span><span></span></div><div id="libraryAdminList"></div></div>
+              </section>
+
+              <section class="admin-pane" data-admin-pane="groups">
+                <div class="admin-pane-head"><div><p class="eyebrow">IDENTITY & ACCESS</p><h2>Organization groups</h2><p>Map cloud-directory groups to platform access. Membership remains managed by your identity provider.</p></div><button class="primary-button" id="mapGroupButton">＋ Map group</button></div>
+                <div class="identity-banner">
+                  <span class="identity-mark">ID</span><div><strong>Microsoft Entra ID</strong><p>Tenant: northstar.example · SCIM provisioning enabled · AWS IAM Identity Center supported</p></div><span class="sync-healthy"><i></i> Healthy</span><button class="secondary-button" id="syncGroupsButton">↻ Sync now</button>
+                </div>
+                  <div class="membership-boundary"><span>i</span><p><strong>Membership is read-only here.</strong> Add or remove people in your source directory—Microsoft Entra ID or AWS IAM Identity Center. Proofline manages only platform role, scope, and process ownership.</p></div>
+                <div class="group-table"><div class="group-row group-header"><span>Directory group</span><span>Platform role</span><span>Scope</span><span>Members</span><span>Sync</span><span></span></div><div id="groupAdminList"></div></div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section id="registryView" class="workspace-view">
+          <div class="registry-reader-head">
+            <div><p class="eyebrow">SYSTEM OF RECORD</p><h2>AI Registry</h2><p>Every review starts with a registered AI use case and named technical and business accountability.</p></div>
+            <button class="primary-button submitter-registry-action" id="registerUseCaseButton">＋ Register AI use case</button>
+          </div>
+          <div class="registry-assurance"><span class="registry-assurance-mark">◇</span><div><strong>Registration is required before submission</strong><p>A review cannot be started until its AI use case has an active registry ID.</p></div><span><b id="registryReadyCount">3</b> ready for review</span></div>
+          <div class="registry-summary"><article><span>REGISTERED USE CASES</span><strong id="registryTotalMetric">3</strong><small>Visible to your workspace</small></article><article><span>TECHNICAL OWNERS</span><strong id="registryTechOwnerMetric">3</strong><small>Named accountability</small></article><article><span>LIFECYCLE COVERAGE</span><strong id="registryLifecycleMetric">3</strong><small>Lifecycle stages represented</small></article></div>
+          <section class="panel registry-panel">
+            <div class="registry-toolbar"><label class="registry-search"><span>⌕</span><input id="registrySearch" type="search" placeholder="Search use case, owner, or registry ID" /></label><span id="registryRoleNote">Showing use cases available to your directory groups</span></div>
+            <div class="registry-table"><div class="registry-record-row registry-record-header"><span>AI use case</span><span>Lifecycle</span><span>Technical owner</span><span>Business owner</span><span>Readiness</span><span></span></div><div id="registryRecordList"></div></div>
+          </section>
+        </section>
+
+        <section id="reviewsView" class="workspace-view">
+          <div class="register-summary">
+            <article><span>OPEN REVIEWS</span><strong id="registerOpenCount">0</strong><small>Across the current workspace</small></article>
+            <article><span>DEPLOYMENT</span><strong id="registerDeploymentCount">0</strong><small>Production-bound use cases</small></article>
+            <article><span>POC</span><strong id="registerPocCount">0</strong><small>Feasibility assessments</small></article>
+          </div>
+          <section class="panel register-panel">
+            <div class="panel-heading register-heading">
+              <div><p class="eyebrow">REVIEW REGISTER</p><h2 id="registerHeading">Every review, one evidence trail</h2><p class="heading-note" id="registerNote">Search, filter, and open a review without losing its lifecycle context.</p></div>
+              <div class="register-tools">
+                <label class="register-search"><span>⌕</span><input id="reviewSearch" type="search" placeholder="Search review or ID" aria-label="Search reviews" /></label>
+                <div class="register-filters" role="group" aria-label="Filter reviews by lifecycle">
+                  <button class="register-filter active" data-register-filter="all">All</button>
+                  <button class="register-filter" data-register-filter="deployment">Deployment</button>
+                  <button class="register-filter" data-register-filter="poc">POC</button>
+                </div>
+              </div>
+            </div>
+            <div class="register-table">
+              <div class="register-row register-header"><span>Review</span><span>Lifecycle</span><span>Status</span><span>Risk</span><span>Timing</span><span></span></div>
+              <div id="reviewRegisterList"></div>
+            </div>
+            <div class="register-empty" id="registerEmpty" hidden><strong>No reviews match</strong><span>Try another lifecycle or search term.</span></div>
+          </section>
+        </section>
+
+        <section id="notificationsView" class="workspace-view">
+          <div class="notification-layout">
+            <section class="panel notification-center">
+              <div class="panel-heading notification-heading">
+                <div><p class="eyebrow">EVENT INBOX</p><h2>Signals that need attention</h2><p class="heading-note">Assignments, evidence responses, SLA warnings, and final decisions.</p></div>
+                <div class="notification-controls">
+                  <div class="filter-row">
+                    <button class="notification-filter active" data-notification-filter="all">All</button>
+                    <button class="notification-filter" data-notification-filter="unread">Unread</button>
+                  </div>
+                  <button class="text-button" id="markAllReadButton">Mark all read</button>
+                </div>
+              </div>
+              <div class="notification-list" id="notificationList"></div>
+              <div class="register-empty" id="notificationEmpty" hidden><strong>You’re all caught up</strong><span>New audit events will appear here.</span></div>
+            </section>
+            <aside class="notification-side">
+              <section class="panel notification-brief">
+                <p class="eyebrow">DELIVERY HEALTH</p>
+                <div class="delivery-score"><strong>98.7%</strong><span>Delivered on time</span></div>
+                <div class="delivery-line"><span>Email</span><i><b style="width:96%"></b></i><strong>96%</strong></div>
+                <div class="delivery-line"><span>In-app</span><i><b style="width:100%"></b></i><strong>100%</strong></div>
+                <p class="delivery-note">Notification rules are managed by the platform admin.</p>
+              </section>
+              <section class="panel notification-legend">
+                <p class="eyebrow">SIGNAL GUIDE</p>
+                <div><i class="assignment"></i><span><strong>Assignment</strong><small>A review entered your queue</small></span></div>
+                <div><i class="evidence"></i><span><strong>Evidence</strong><small>A response or request is ready</small></span></div>
+                <div><i class="deadline"></i><span><strong>SLA warning</strong><small>A configured timeline is at risk</small></span></div>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <section id="newsView" class="workspace-view">
+          <div class="news-reader-head">
+            <div><p class="eyebrow">WORKSPACE BULLETIN</p><h2>What’s changing</h2><p>Published guidance, deadlines, and events for your role and organizational groups.</p></div>
+            <span class="audience-view" id="newsAudienceView">Showing: All groups + R&amp;D</span>
+          </div>
+          <section class="news-feature" id="newsFeature"></section>
+          <div class="news-reader-grid">
+            <section class="panel news-feed-panel">
+              <div class="panel-heading compact"><div><p class="eyebrow">LATEST UPDATES</p><h2>News for your workspace</h2></div><label class="reader-search"><span>⌕</span><input id="workspaceNewsSearch" type="search" placeholder="Search updates" /></label></div>
+              <div class="news-feed" id="workspaceNewsList"></div>
+            </section>
+            <aside class="panel news-context-panel">
+              <p class="eyebrow">YOUR CHANNELS</p>
+              <div class="channel-list" id="newsChannelList"></div>
+              <div class="reader-admin-note admin-only-reader"><strong>Publishing controls</strong><p>Create, target, and schedule workspace news from Configuration → News.</p><button data-open-admin-section="news">Manage news →</button></div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="libraryView" class="workspace-view">
+          <div class="library-reader-head">
+            <div><p class="eyebrow">GOVERNED KNOWLEDGE</p><h2>Responsible AI Library</h2><p>Find the current policy, approved templates, and practical guidance for your work.</p></div>
+            <label class="library-reader-search"><span>⌕</span><input id="workspaceLibrarySearch" type="search" placeholder="Search policies, templates, and guides" /></label>
+          </div>
+          <div class="library-shelves" id="libraryShelves"></div>
+          <div class="library-reader-layout">
+            <section class="panel library-reader-panel">
+              <div class="library-reader-toolbar"><div class="filter-row"><button class="library-reader-filter active" data-library-reader-filter="all">All</button><button class="library-reader-filter" data-library-reader-filter="Policy">Policies</button><button class="library-reader-filter" data-library-reader-filter="Template">Templates</button><button class="library-reader-filter" data-library-reader-filter="Guidance">Guidance</button></div><span id="libraryResultCount">0 resources</span></div>
+              <div class="library-card-grid" id="workspaceLibraryList"></div>
+            </section>
+            <aside class="panel library-help-panel">
+              <span class="help-compass">?</span><p class="eyebrow">CAN’T FIND IT?</p><h3>Ask the RAI Office</h3><p>Get help finding the right control, evidence template, or policy interpretation.</p><button class="secondary-button" id="libraryHelpButton">Contact the team</button>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="uploadModal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+        <button class="modal-close" data-close-modal aria-label="Close">×</button>
+        <p class="eyebrow">NEW RESPONSIBLE AI REVIEW</p>
+        <h2 id="uploadTitle">Add the assessment workbook</h2>
+        <p class="modal-intro">We validate the spreadsheet structure and required evidence before it reaches an auditor.</p>
+        <div class="stepper"><span class="active">1</span><i></i><span>2</span><i></i><span>3</span><i></i><span>4</span></div>
+        <section class="registry-prerequisite">
+          <div class="section-minihead"><span>1</span><div><strong>Choose a registered AI use case</strong><small>Submission is blocked until the use case has an active registry ID.</small></div></div>
+          <div class="registry-gate-control">
+            <span class="registry-gate-icon">◇</span>
+            <label for="reviewRegistrySelect"><span>AI Registry record</span><select id="reviewRegistrySelect"><option value="">Select a registered use case</option></select></label>
+            <button id="registerFromReviewButton" type="button">＋ Register new</button>
+          </div>
+          <div class="registry-selection-detail" id="registrySelectionDetail" hidden></div>
+        </section>
+        <section class="lifecycle-section">
+          <div class="section-minihead"><span>2</span><div><strong>Choose the review lifecycle stage</strong><small>The review stage can progress from the lifecycle recorded in the registry.</small></div></div>
+          <div class="lifecycle-toggle" role="group" aria-label="Use case lifecycle stage">
+            <button class="lifecycle-option active" data-lifecycle="poc">
+              <span class="option-radio"></span><span><strong>Proof of concept</strong><small>Validate feasibility and initial controls</small></span><b>POC</b>
+            </button>
+            <button class="lifecycle-option" data-lifecycle="deployment">
+              <span class="option-radio"></span><span><strong>Deployment</strong><small>Review a production-bound use case</small></span><b>LIVE</b>
+            </button>
+          </div>
+        </section>
+
+        <section class="deployment-section" id="deploymentSection" hidden>
+          <div class="section-minihead"><span>3</span><div><strong>How should this deployment start?</strong><small>Carry forward approved POC evidence or begin with a new workbook.</small></div></div>
+          <div class="deployment-paths" role="group" aria-label="Deployment starting point">
+            <button class="deployment-path active" data-deployment-path="reuse"><strong>Continue approved POC</strong><small>Reuse its workbook and evidence trail</small></button>
+            <button class="deployment-path" data-deployment-path="new"><strong>Start fresh</strong><small>Create a separate deployment review</small></button>
+          </div>
+          <div class="poc-reuse-card" id="pocReuseCard">
+            <label for="approvedPocSelect">Approved POC to continue</label>
+            <select id="approvedPocSelect">
+              <option value="RAI-1984">Customer propensity model · RAI-1984</option>
+              <option value="RAI-1962">Claims document assistant · RAI-1962</option>
+            </select>
+            <div class="baseline-workbook">
+              <span class="baseline-icon">X</span>
+              <span><strong id="baselineWorkbookName">RAI-1984-poc-workbook.xls</strong><small>Approved Jun 12 · 86 controls · Evidence retained</small></span>
+              <button id="downloadPocButton">Download baseline</button>
+            </div>
+            <p><span>↳</span> Update this workbook for deployment, then upload the revised copy below.</p>
+          </div>
+        </section>
+
+        <div class="section-minihead workbook-heading"><span id="workbookStepNumber">2</span><div><strong id="workbookStepTitle">Add the POC workbook</strong><small id="workbookStepNote">Upload the assessment prepared for this use case.</small></div></div>
+        <div class="drop-zone" id="dropZone" tabindex="0">
+          <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" hidden />
+          <div class="excel-glyph"><b>X</b><i></i><i></i><i></i></div>
+          <strong id="dropZoneTitle">Drop your POC workbook here</strong>
+          <span>or <button id="browseButton">choose a file</button></span>
+          <small>.xlsx, .xls or .csv · up to 25 MB</small>
+        </div>
+        <div class="validation-state" id="validationState" hidden>
+          <div class="spinner"></div>
+          <div><strong>Validating workbook</strong><span id="validationDetail">Checking sheet structure…</span></div>
+        </div>
+        <div class="file-ready" id="fileReady" hidden>
+          <div class="file-ready-icon">✓</div>
+          <div><strong id="readyFileName">assessment.xlsx</strong><span id="fileReadyMeta">POC workbook is ready · 4 sheets · 86 controls</span></div>
+          <button id="removeFileButton">Remove</button>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-button" data-close-modal>Cancel</button>
+          <button class="primary-button" id="continueButton" disabled>Start POC review</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop registry-modal" id="registryModal" aria-hidden="true">
+      <form class="modal-card registry-modal-card" id="registryModalForm" role="dialog" aria-modal="true" aria-labelledby="registryModalTitle">
+        <button class="modal-close" id="registryModalClose" type="button" aria-label="Close">×</button>
+        <p class="eyebrow">AI REGISTRY</p>
+        <h2 id="registryModalTitle">Register AI use case</h2>
+        <p class="modal-intro" id="registryModalIntro">Create the accountability record required before a responsible AI review can begin.</p>
+        <div class="registry-form-identity" id="registryFormIdentity" hidden><span>REGISTRY ID</span><strong id="registryFormId">AIR-0001</strong></div>
+        <div class="registry-dynamic-form" id="registryDynamicForm"></div>
+        <div class="modal-actions"><button class="secondary-button" id="registryModalCancel" type="button">Cancel</button><button class="primary-button" id="registryModalSubmit" type="submit">Register use case</button></div>
+      </form>
+    </div>
+
+    <div class="drawer" id="reviewDrawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div><p class="eyebrow">REVIEW DETAIL</p><h2 id="drawerTitle">RAI-2041</h2></div>
+        <button class="modal-close" id="drawerClose" aria-label="Close">×</button>
+      </div>
+      <div class="risk-banner"><span>MEDIUM RISK</span><b class="lifecycle-badge deployment" id="drawerLifecycle">Deployment</b><strong id="drawerStatus">Evidence requested</strong></div>
+      <div class="drawer-section">
+        <span class="drawer-label">System</span><h3 id="drawerSystem">Customer propensity model</h3><p><strong id="drawerRegistryId">AIR-0138</strong> · Owner: <span id="drawerOwner">Growth Analytics</span> · EU region</p>
+      </div>
+      <div class="evidence-spine">
+        <div class="done"><i>✓</i><p><strong>Workbook submitted</strong><span>Aug 18 · Aarav Mehta</span></p></div>
+        <div class="done"><i>✓</i><p><strong>Auditor review started</strong><span>Aug 19 · Assigned to Priya Shah</span></p></div>
+        <div class="current"><i>!</i><p><strong>Evidence requested</strong><span>Auditor needs model monitoring thresholds</span></p></div>
+        <div><i>4</i><p><strong>Final assessment</strong><span>Waiting for evidence</span></p></div>
+      </div>
+      <div class="submitter-workbench">
+        <div class="drawer-note"><strong>Request from Priya</strong><p>Provide the current drift threshold and one example of a triggered investigation.</p></div>
+        <div class="drawer-actions"><button class="secondary-button">Download workbook</button><button class="primary-button" id="respondButton">Provide evidence</button></div>
+      </div>
+
+      <div class="auditor-workbench">
+        <div class="workbench-heading">
+          <p class="eyebrow">AUDITOR WORKBENCH</p>
+          <h3>Review the workbook</h3>
+          <p>Download a working copy, record your assessment, then upload the reviewed workbook before deciding.</p>
+        </div>
+        <button class="workbook-action download" id="downloadWorkbookButton">
+          <span class="workbook-icon">↓</span>
+          <span><strong>Download workbook</strong><small id="downloadWorkbookName">RAI-2041-assessment.xls</small></span>
+          <b>Download</b>
+        </button>
+        <label class="workbook-action upload" id="auditorUploadLabel">
+          <input id="auditorFileInput" type="file" accept=".xlsx,.xls,.csv" hidden />
+          <span class="workbook-icon">↑</span>
+          <span><strong id="auditorUploadTitle">Upload reviewed workbook</strong><small id="auditorUploadDetail">Required before a decision</small></span>
+          <b>Choose file</b>
+        </label>
+        <div class="decision-panel" id="decisionPanel" aria-disabled="true">
+          <p class="eyebrow">AUDITOR DECISION</p>
+          <label for="evidenceQuestion">Question or sign-off note</label>
+          <textarea id="evidenceQuestion" rows="3" placeholder="Describe the additional evidence needed, or leave a sign-off note…" disabled></textarea>
+          <div class="decision-actions">
+            <button class="evidence-button" id="requestEvidenceButton" disabled>Ask for evidence</button>
+            <button class="signoff-button" id="signOffButton" disabled><span>✓</span> Sign off & complete</button>
+          </div>
+          <small class="decision-help">Sign-off approves the review and completes the audit.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop admin-modal" id="adminModal" aria-hidden="true">
+      <form class="modal-card admin-modal-card" id="adminModalForm" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+        <button class="modal-close" id="adminModalClose" type="button" aria-label="Close">×</button>
+        <p class="eyebrow" id="adminModalEyebrow">ADMIN CONTROL</p>
+        <h2 id="adminModalTitle">Add item</h2>
+        <p class="modal-intro" id="adminModalIntro">Configure this item for the workspace.</p>
+        <div class="admin-form" id="adminModalFields"></div>
+        <div class="modal-actions">
+          <button class="secondary-button" id="adminModalCancel" type="button">Cancel</button>
+          <button class="primary-button" id="adminModalSubmit" type="submit">Add</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="drawer content-preview-drawer" id="contentPreviewDrawer" aria-hidden="true">
+      <div class="drawer-head"><div><p class="eyebrow" id="contentPreviewType">LIBRARY PREVIEW</p><h2 id="contentPreviewTitle">Responsible AI policy</h2></div><button class="modal-close" id="contentPreviewClose" aria-label="Close">×</button></div>
+      <div class="preview-document" id="contentPreviewVisual"><span>PDF</span><i></i><i></i><i></i><b>Controlled copy</b></div>
+      <div class="preview-metadata" id="contentPreviewMetadata"></div>
+      <div class="preview-body"><p class="eyebrow">ABOUT THIS RESOURCE</p><p id="contentPreviewDescription">The organization-wide standard for designing, assessing, and operating AI systems responsibly.</p></div>
+      <div class="preview-audience"><span>Access is based on your directory groups</span><strong id="contentPreviewAudience">All groups</strong></div>
+      <div class="drawer-actions"><button class="secondary-button" id="previewCopyLinkButton">Copy link</button><button class="primary-button" id="previewOpenButton">Open resource ↗</button></div>
+    </div>
+
+    <div class="toast" id="toast" role="status"><span>✓</span><p><strong>Saved</strong><small>Your changes are active.</small></p></div>
+    <script src="app.js"></script>
+  </body>
+</html>
