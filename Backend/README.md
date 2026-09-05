@@ -244,7 +244,7 @@ Service Bus remains the durable business-workflow transport.
 
 | Module | Responsibilities | Owns |
 |---|---|---|
-| Identity & Access | Token validation, tenant context, principals, directory groups, scoped role assignments | `principal`, `directory_group`, `role_assignment` |
+| Identity & Access | Token validation, tenant context, principals, directory groups, scoped permissions, auditor teams and lead designations | `principal`, `directory_group`, `role_assignment`, `audit_team`, `audit_team_membership`, `audit_team_lead` |
 | AI Registry | AI system identity, ownership, lifecycle, configurable fields, readiness rules | `ai_system`, registry field definitions and values |
 | Review | Review creation, lifecycle snapshot, assignments, stage state machine, SLA | `review`, `stage_run`, `assignment` |
 | Assessment | Template/question versions and structured responses | `assessment_template`, `question_version`, `assessment_response` |
@@ -403,6 +403,15 @@ erDiagram
     PRINCIPAL ||--o{ ROLE_ASSIGNMENT : receives
     DIRECTORY_GROUP ||--o{ ROLE_ASSIGNMENT : receives
 
+    TENANT ||--o{ AUDIT_TEAM : contains
+    AUDIT_TEAM ||--o{ AUDIT_TEAM_MEMBERSHIP : includes
+    PRINCIPAL ||--o{ AUDIT_TEAM_MEMBERSHIP : joins
+    AUDIT_TEAM ||--o| AUDIT_TEAM_LEAD : designates
+    PRINCIPAL ||--o{ AUDIT_TEAM_LEAD : leads
+    AUDIT_TEAM ||--o{ REVIEW : handles
+    STAGE_RUN ||--o{ ASSIGNMENT : tracks
+    PRINCIPAL ||--o{ ASSIGNMENT : receives
+
     TENANT ||--o{ AI_SYSTEM : owns
     AI_SYSTEM ||--o{ REGISTRY_FIELD_VALUE : has
     REGISTRY_FIELD_DEFINITION ||--o{ REGISTRY_FIELD_VALUE : defines
@@ -444,14 +453,18 @@ erDiagram
 | `tenant` | `tenant_id`, slug, name, data region, status |
 | `principal` | User/service identity; Entra object ID is an alternate key |
 | `directory_group` | External group ID, display name, last sync, enabled |
-| `role_assignment` | Principal or group, role, scope type, scope ID |
+| `role_assignment` | Principal or group, application role or explicit capability, scope type, scope ID; directory roles remain directory-managed |
+| `audit_team` | Tenant, name, business scope, enabled state, version |
+| `audit_team_membership` | Tenant, team, principal, active state; unique team/principal pair; managed by Admin in the application |
+| `audit_team_lead` | Tenant, team, principal, designated by/at, version; at most one current lead per team, referencing team membership |
+| `assignment` | Tenant, review, stage run, team, assignee, assigned by/at, reason, superseded at; at most one active assignee per stage run |
 | `ai_system` | UUID PK, tenant-scoped AIR business number, owners, lifecycle, risk tier |
 | `registry_field_definition` | Versioned key, type, required rule, options, display ordinal |
 | `registry_field_value` | AI system, field definition, typed JSON value |
 | `lifecycle_definition` | Stable lifecycle identity such as Standard or Expedited |
 | `lifecycle_version` | Immutable published version and effective dates |
 | `stage_definition` | Ordered stage, owner role/group, SLA, decision rights |
-| `review` | UUID PK, RAI business number, AI system, type, state, risk, due date |
+| `review` | UUID PK, RAI business number, AI system, accountable audit team ID, type, state, risk, due date |
 | `stage_run` | Runtime instance, assignment, state, start/due/completion timestamps |
 | `assessment_response` | Versioned question answer, status, actor, timestamps |
 | `evidence_request` | Prompt, requester, state, due date, stage |
@@ -554,6 +567,39 @@ POST   /reviews/{reviewId}/transitions
 GET    /reviews/{reviewId}/timeline
 ~~~
 
+### Auditor teams and assignment contract
+
+~~~text
+GET    /me/capabilities
+GET    /audit-teams/{teamId}/assignment-queue
+GET    /audit-teams/{teamId}/eligible-assignees
+GET    /audit-teams/{teamId}/workload
+GET    /audit-teams/{teamId}/performance
+POST   /admin/audit-teams
+PUT    /admin/audit-teams/{teamId}/members/{principalId}
+DELETE /admin/audit-teams/{teamId}/members/{principalId}
+PUT    /admin/audit-teams/{teamId}/lead
+DELETE /admin/audit-teams/{teamId}/lead
+~~~
+
+- Admin manages team membership and designates/replaces/removes the lead within
+  administrative scope. These operations do not edit directory membership.
+- `PUT .../lead` accepts `principalId` and a reason, requires the current team
+  version, and verifies active Auditor access and team membership. Replacement
+  atomically removes the previous lead's derived authority.
+- `POST /reviews/{reviewId}/assignments` handles initial assignment and
+  reassignment. It accepts `stageRunId`, `assigneePrincipalId`, and a reason;
+  requires an idempotency key and the review ETag via `If-Match`. The server
+  derives tenant, team, actor, and authority from trusted context.
+- Apply section 10.4 authorization, then atomically supersede the old assignment
+  and persist the new assignment, incremented review version, audit event, and
+  outbox event. Send notifications after commit.
+- Return `403` for denied operations (or `404` for resources outside visible
+  scope), `412` for stale `If-Match`, and `409` for ineligible assignees or
+  incompatible workflow state, using problem details.
+- `/me/capabilities` returns effective permissions with team/resource scopes
+  for navigation. Every backend operation independently enforces authorization.
+
 ### Assessment, evidence, findings, and decisions
 
 ~~~text
@@ -632,6 +678,8 @@ decision.recorded.v1
 review.closed.v1
 content.published.v1
 directory-group.synced.v1
+audit-team.membership-changed.v1
+audit-team.lead-changed.v1
 ~~~
 
 Every event envelope includes:
@@ -667,28 +715,154 @@ Consumers must tolerate duplicate delivery and ignore already processed
 - Managed identity for Azure service access.
 - No local production passwords.
 
-### 10.2 Application roles
+### 10.2 Three personas and directory groups
 
-| Role | Typical capabilities |
-|---|---|
-| Submitter | Create/update permitted Registry records, create reviews, upload artifacts, answer assigned evidence requests |
-| Auditor | View assigned/scoped records, assess, request evidence, create findings |
-| Senior auditor / decision owner | Auditor permissions plus decisions, waivers, and sign-off |
-| Platform admin | Version and publish workflow/schema configuration, manage content and group mappings |
-| Audit reader | Read-only access to authorized reviews and audit exports |
-| Service principal | Narrow integration-specific operations only |
+Proofline has exactly three human personas. Use "Auditor" consistently for the
+reviewer persona. Map three directory security groups to application roles:
 
-Authorization is both role- and scope-based. A role assignment includes a scope
-such as tenant, business unit, directory group, queue, AI system, or review.
+| Directory group (example) | Application role | Typical capabilities |
+|---|---|---|
+| `RAI-Submitters` | Submitter | Create/update owned or explicitly shared Registry records, submit reviews, upload artifacts, answer evidence requests |
+| `RAI-Auditors` | Auditor | Assess assigned/permitted records, request evidence, create findings; decisions require explicit stage authority |
+| `RAI-Admins` | Admin | Govern configuration/content, map directory roles, manage auditor teams and lead designations within administrative scope |
 
-### 10.3 Directory synchronization
+In Entra ID, assign these groups to application roles and authorize API calls
+using validated access-token role claims plus current application access
+state. Store stable external group IDs; display names are labels, not security
+identifiers. Directory membership remains read-only in Proofline.
 
-- Store external Entra object IDs and display metadata.
-- Treat group membership as read-only in Proofline.
-- Use Microsoft Graph delta queries or an approved identity provisioning flow.
-- Record sync watermark, last success, failure, and membership version.
+Lead Auditor is a team responsibility within the Auditor persona, not a fourth
+persona or an automatic consequence of seniority. Decision/sign-off/waiver
+authority and read-only audit export access are separately scoped capabilities;
+assignment authority never implies these capabilities. Service principals use
+integration-specific permissions and are not human personas.
+
+Users may hold multiple roles, but a persona switcher cannot grant access or
+bypass separation of duties. Admin alone does not grant assessment, assignment,
+or sign-off rights.
+
+### 10.3 Team membership and lead designation
+
+The directory determines who is an Auditor. The application is the source of
+truth for auditor team membership, the current lead, and review assignments.
+Admin selects an active Auditor team member as Lead Auditor. Each team may
+have zero or one current lead; only that lead derives `reviews.assign` and
+`reviews.reassign` within the team's scope.
+
+For example, all five people belong to `RAI-Auditors` and the same application
+audit team. Admin designates one as lead. That auditor can assign and reassign
+cases to the other four eligible team members. The four retain their normal
+review capabilities but cannot assign work to themselves or others. The lead
+may receive work if eligible; assignment does not confer decision authority.
+
+Persist the designation in `audit_team_lead`; do not duplicate its derived
+assignment rights as permanent global grants in `role_assignment`. Enforce
+same-tenant membership references and one current lead per team in the
+database. Use optimistic concurrency and transactional eligibility checks for
+lead/membership changes and assignments.
+
+A person may belong to several teams and lead only some of them. Membership
+alone never grants assignment rights. If a lead is removed or unavailable,
+retain queued work and valid assignments, alert the scoped Admin, and require
+an explicit replacement. Never promote the next most senior person
+automatically. Record replacements and removals in immutable history.
+
+Where directory-governed privileged access is mandatory, an optional
+`RAI-Auditor-Leads` group can be an additional prerequisite for lead
+eligibility. It remains a capability group, not another persona, and group
+membership alone cannot grant assignment rights across teams. The default
+design needs only the three persona groups.
+
+### 10.4 Backend authorization for assignment and review
+
+For every assignment/reassignment, the API must verify:
+
+1. The caller is active, has effective Auditor access, and is the current lead
+   and active member of the review's accountable audit team.
+2. Caller, team, review, active stage, and recipient belong to the same tenant
+   and permitted business scope. A supplied team ID cannot change scope.
+3. The recipient is active, has effective Auditor access, and is an active
+   member of that team with any qualifications required by the stage.
+4. The review/stage permits assignment under its versioned workflow.
+5. The recipient passes conflict-of-interest rules. A submitter or owner
+   cannot be assigned to review/approve their own submission, even with
+   multiple roles. Apply the same checks at decision/sign-off time.
+6. The supplied version is current, and concurrent membership/lead changes
+   cannot cause the assignment to commit with invalid authority.
+
+Default to deny. Ordinary auditors cannot self-assign or reassign through
+direct API calls. An Admin who also acts as lead must satisfy the same
+Auditor, team, assignment, and conflict requirements.
+
+Record old/new assignee, actor, team, stage, reason, timestamp, and correlation
+ID with the assignment and audit/outbox records in one transaction.
+Reassignment removes the previous auditor's assignment-derived edit/decision
+access; historical read access is governed separately. Recorded decisions
+remain immutable. Workflow routing workers use narrowly scoped service
+permissions and recipient/state/conflict checks; they do not give human
+auditors an assignment bypass.
+
+### 10.5 Auditor workspace and team reporting
+
+- All auditors have "My reviews" and actions authorized for their assignments.
+- The lead additionally sees the team's assignment queue, eligible assignees,
+  workload, and Assign/Reassign controls.
+- Return effective scoped capabilities for UI rendering and enforce them
+  again on every API request. Hiding controls is not an access boundary.
+- Team performance/leaderboard visibility is an independent scoped capability,
+  `team.performance.read`; Auditor membership or lead designation alone does
+  not grant it. Admin grants it to the appropriate team audience.
+- Leads can see minimum workload metadata needed for routing; this does not
+  grant access to all evidence or decision actions.
+- Scope aggregates, counts, search, exports, and cached reports by tenant and
+  team. Authorize record drill-down separately from aggregate visibility.
+- Prefer backlog, overdue work, turnaround time, and rework trends. Avoid
+  approval rate or raw completion rankings as the default performance measure.
+
+### 10.6 Directory synchronization and revocation
+
+- Store external Entra object IDs, display metadata, and membership versions.
+- Treat directory membership as read-only; use Microsoft Graph delta queries
+  or an approved identity provisioning flow.
+- Record sync watermark, last success/failure, and authorization freshness.
+- Removing Auditor access, disabling a principal, or removing team membership
+  invalidates derived lead authority. A retained lead row or stale token must
+  never independently restore access.
+- Application lead/membership changes take effect on subsequent authorization
+  checks and invalidate relevant caches. Directory changes require
+  propagation: define and monitor a maximum freshness interval, refresh stale
+  access before sensitive operations, and fail closed if authority cannot be
+  established. Token claims alone cannot promise immediate directory revocation.
+- Revoke affected grants/designations on synchronization, retain history, flag
+  orphaned assignments, and notify the current lead or scoped Admin. Do not
+  delete historical reviews or decisions.
 - Disable access conservatively when an authoritative group is deleted or
   disabled.
+
+### 10.7 Required authorization acceptance scenarios
+
+Before implementing this blueprint in production, verify:
+
+- Five members of one Auditor group can form a team with one lead; only that
+  lead can assign/reassign to eligible team members.
+- Ordinary auditors cannot bypass restrictions through direct API calls,
+  changed IDs, or a persona switch.
+- Leads cannot assign across tenants/teams or to disabled users, non-Auditors,
+  inactive team members, or users with a conflict of interest.
+- Admin alone cannot assign/sign off; a lead without explicit decision
+  authority cannot sign off.
+- Lead replacement removes the previous lead's application-derived authority;
+  concurrent replacements cannot create two current leads.
+- Group removal, stale identity state, disabled principals, and membership
+  removal cannot leave usable lead privileges. Orphaned work remains visible
+  to the authorized replacement lead or scoped Admin.
+- Reassignment invalidates old assignment action rights. Closed reviews,
+  stale versions, and concurrent assignment/membership changes are handled
+  without unauthorized writes; idempotent retries create no duplicate events.
+- Lead and assignment changes have complete audit history; failed transactions
+  roll back assignment and audit/outbox writes together.
+- Metrics and exports respect separate scopes, and permitted aggregates
+  cannot expose unauthorized review records or evidence.
 
 ---
 
@@ -1060,7 +1234,7 @@ development.
 ### Phase 1 — Foundation
 
 - solution/module skeleton;
-- Entra authentication and tenant context;
+- Entra authentication, three persona mappings, tenant context, and directory synchronization/revocation;
 - PostgreSQL/Azure SQL migration framework;
 - Blob abstraction;
 - transactional outbox;
@@ -1079,7 +1253,10 @@ development.
 
 ### Phase 3 — Auditor workflow
 
-- queue and assignment;
+- Admin-managed auditor teams, membership, and one lead designation per team;
+- lead-only assignment/reassignment with concurrency and audit history;
+- capability-aware personal queues, lead workload view, and scoped reporting;
+- authorization acceptance scenarios from section 10.7;
 - assessment responses;
 - evidence requests/submissions;
 - findings;
@@ -1091,7 +1268,7 @@ development.
 - lifecycle and routing configuration versions;
 - News and Library;
 - audience rules;
-- directory group synchronization;
+- directory synchronization administration and access-health visibility;
 - publish/rollback controls.
 
 ### Phase 5 — Analytics and hardening
@@ -1120,6 +1297,8 @@ development.
 - [ ] Managed identities replace stored Azure credentials.
 - [ ] Upload quarantine and malware scanning cannot be bypassed.
 - [ ] Access reviews and least-privilege roles completed.
+- [ ] Three persona groups and team-scoped lead assignment permissions verified.
+- [ ] Section 10.7 authorization, revocation, concurrency, and reporting scenarios pass.
 - [ ] Image, dependency, IaC, and secret scans pass.
 
 ### Data governance
