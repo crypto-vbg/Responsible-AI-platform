@@ -18,19 +18,19 @@ const queue = [
 ];
 
 const notifications = [
-  { id: "N-A1", roles: ["auditor"], reviewId: "RAI-2047", kind: "assignment", icon: "↗", title: "Deployment review assigned", message: "Transaction anomaly model entered your queue with a five-day review SLA.", time: "4 min ago", unread: true },
-  { id: "N-A2", roles: ["auditor"], reviewId: "RAI-2041", kind: "evidence", icon: "?", title: "Evidence response received", message: "Growth Analytics supplied the requested drift threshold and investigation example.", time: "38 min ago", unread: true },
+  { id: "N-A1", roles: ["auditor"], reviewId: "RAI-2038", auditorId: "priya", kind: "assignment", icon: "↗", title: "Deployment review assigned", message: "Claims document assistant is ready for your assessment.", time: "4 min ago", unread: true },
+  { id: "N-A2", roles: ["auditor"], reviewId: "RAI-2041", kind: "evidence", icon: "?", title: "Evidence response pending", message: "Growth Analytics is preparing the requested drift threshold and investigation example.", time: "38 min ago", unread: true },
   { id: "N-A3", roles: ["auditor"], reviewId: "RAI-2038", kind: "deadline", icon: "!", title: "Review is approaching its SLA", message: "Claims document assistant has used 80% of the configured auditor review timeline.", time: "2 h ago", unread: false },
   { id: "N-U1", roles: ["user"], reviewId: "RAI-2041", kind: "evidence", icon: "?", title: "Additional evidence requested", message: "Priya needs the current drift threshold and a triggered investigation example.", time: "12 min ago", unread: true },
   { id: "N-U2", roles: ["user"], reviewId: "RAI-2029", kind: "assignment", icon: "↗", title: "Auditor review started", message: "Employee mobility matcher is now assigned to the responsible AI audit team.", time: "Yesterday", unread: false },
   { id: "N-U3", roles: ["user"], reviewId: "RAI-1984", kind: "decision", icon: "✓", title: "POC review approved", message: "Customer propensity model can now be continued as a deployment review.", time: "Jun 12", unread: false },
-  { id: "N-M1", roles: ["admin"], reviewId: "RAI-2047", kind: "deadline", icon: "!", title: "Two reviews are at breach risk", message: "Configured escalation notices were sent to the assigned senior auditors.", time: "8 min ago", unread: true },
-  { id: "N-M2", roles: ["admin"], kind: "assignment", icon: "↗", title: "Routing capacity changed", message: "Priya Shah is next in the balanced-workload assignment rotation.", time: "1 h ago", unread: false },
+  { id: "N-M1", roles: ["admin"], reviewId: "RAI-2047", kind: "deadline", icon: "!", title: "Two reviews are at breach risk", message: "The Lead Auditor has visibility of the reviews approaching their service deadline.", time: "8 min ago", unread: true },
+  { id: "N-M2", roles: ["admin"], kind: "assignment", icon: "↗", title: "Team lead designated", message: "Priya Shah manages assignment for Responsible AI Assurance.", time: "1 h ago", unread: false },
 ];
 
 const roleProfiles = {
   user: { label: "Submitter", eyebrow: "SUBMITTER WORKSPACE", title: "Your AI reviews", name: "Aarav Mehta", role: "Submitter", avatar: "AM", health: "92%", groups: ["All groups", "R&D"] },
-  auditor: { label: "Auditor", eyebrow: "AUDITOR WORKSPACE", title: "Review operations", name: "Priya Shah", role: "Senior auditor", avatar: "PS", health: "88%", groups: ["All groups", "Responsible AI Auditors"] },
+  auditor: { label: "Auditor", eyebrow: "AUDITOR WORKSPACE", title: "Review operations", name: "Priya Shah", role: "Lead Auditor", avatar: "PS", health: "88%", groups: ["All groups", "Responsible AI Auditors"] },
   admin: { label: "Admin", eyebrow: "ADMIN CONSOLE", title: "Workflow configuration", name: "Maya Nair", role: "Platform admin", avatar: "MN", health: "95%", groups: ["All groups", "All managed audiences"] },
 };
 
@@ -74,10 +74,9 @@ let libraryResources = [
 ];
 
 let directoryGroups = [
-  { id: 1, name: "RAI-Platform-Admins", externalId: "Entra security group", role: "Platform admin", scope: "Entire organization", members: 6, sync: "6 min ago" },
-  { id: 2, name: "RAI-Auditors", externalId: "Entra security group", role: "Auditor", scope: "All review queues", members: 18, sync: "6 min ago" },
-  { id: 3, name: "R&D-AI-Practitioners", externalId: "Entra security group", role: "Submitter", scope: "R&D", members: 84, sync: "7 min ago" },
-  { id: 4, name: "Commercial-AI-Owners", externalId: "Entra security group", role: "Submitter", scope: "Commercial", members: 31, sync: "7 min ago" },
+  { id: 1, name: "RAI-Admins", externalId: "Entra security group", role: "Admin", scope: "Entire organization", members: 6, sync: "6 min ago" },
+  { id: 2, name: "RAI-Auditors", externalId: "Entra security group", role: "Auditor", scope: "Assigned reviews and team responsibilities", members: 5, sync: "6 min ago" },
+  { id: 3, name: "RAI-Submitters", externalId: "Entra security group", role: "Submitter", scope: "Owned and shared submissions", members: 115, sync: "7 min ago" },
 ];
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
@@ -591,8 +590,8 @@ function openAdminModal(type, item = null) {
     <label>Next review date<input name="review" type="date" required value="2026-10-01" /></label>`;
   if (type === "group") fields.innerHTML = `
     <label>Directory group<select name="name">${item ? `<option>${escapeHtml(item.name)}</option>` : ""}<option>RND-AI-Owners</option><option>Commercial-Risk-Champions</option><option>Legal-AI-Reviewers</option></select></label>
-    <label>Platform role<select name="role"><option>Submitter</option><option>Auditor</option><option>Platform admin</option><option>Viewer</option></select></label>
-    <label>Workspace scope<select name="scope"><option>R&D</option><option>Commercial</option><option>Entire organization</option><option>Assigned review queues</option></select></label>`;
+    <label>Platform role<select name="role"><option>Submitter</option><option>Auditor</option><option>Admin</option></select></label>
+    <label>Workspace scope<select name="scope"><option>R&D</option><option>Commercial</option><option>Entire organization</option><option>Assigned review queues</option><option>Assigned reviews and team responsibilities</option><option>Owned and shared submissions</option></select></label>`;
   if (item) {
     $$("select", fields).forEach((select) => {
       const desired = Array.isArray(item[select.name]) ? item[select.name].join(", ") : item[select.name];
@@ -612,6 +611,7 @@ function closeAdminModal() {
 }
 
 function renderUserReviews() {
+  if (window.ProoflineUX) return window.ProoflineUX.renderUserReviews();
   $("#userReviewList").innerHTML = reviews.map((review) => `
     <div class="review-row">
       <button class="review-title" data-open-review="${review.id}">
@@ -626,6 +626,7 @@ function renderUserReviews() {
 }
 
 function renderQueue(filter = "all") {
+  if (window.ProoflineUX) return window.ProoflineUX.renderQueue();
   const filtered = filter === "all" ? queue : queue.filter((item) => item.tags.includes(filter));
   $("#auditorQueue").innerHTML = filtered.map((item) => `
     <div class="queue-row">
@@ -642,7 +643,7 @@ function renderQueue(filter = "all") {
 function registerItemsForRole() {
   const role = document.body.dataset.role;
   if (role === "user") return reviews.map((item) => ({ ...item, org: item.owner, stage: item.status, timing: item.updated }));
-  return queue.map((item) => ({ ...item, status: item.stage, tone: item.stage.toLowerCase().includes("evidence") ? "evidence" : "review", timing: item.sla }));
+  return (role === "auditor" && window.ProoflineUX ? window.ProoflineUX.personalQueue() : queue).map((item) => ({ ...item, status: item.stage, tone: item.stage.toLowerCase().includes("evidence") ? "evidence" : "review", timing: item.sla }));
 }
 
 function renderReviewRegister() {
@@ -681,7 +682,7 @@ function renderReviewRegister() {
 
 function roleNotifications() {
   const role = document.body.dataset.role;
-  return notifications.filter((item) => item.roles.includes(role));
+  return notifications.filter((item) => item.roles.includes(role) && (role !== "auditor" || !window.ProoflineUX || !item.reviewId || (window.ProoflineUX.notificationVisible(item) && window.ProoflineUX.personalQueue().some((review) => review.id === item.reviewId))));
 }
 
 function syncNotificationIndicator() {
@@ -744,6 +745,7 @@ function navigateWorkspace(page) {
     $$(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.nav === activeNav));
   }
   $("#newReviewButton").style.display = role === "user" && ["overview", "reviews"].includes(page) ? "block" : "none";
+  window.ProoflineUX?.navigate(page);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -771,7 +773,7 @@ function switchRole(role) {
   });
   setRoleMenu(false);
   syncNotificationIndicator();
-  navigateWorkspace(role === "admin" ? "configuration" : "overview");
+  navigateWorkspace("overview");
 }
 
 function openUpload(initialLifecycle = "poc") {
@@ -899,6 +901,7 @@ function showToast(title, message, icon = "✓") {
 }
 
 function openReview(id) {
+  if (window.ProoflineUX && !window.ProoflineUX.canOpen(id)) return;
   const match = reviews.find((item) => item.id === id) || queue.find((item) => item.id === id);
   $("#drawerTitle").textContent = id;
   if (match) $("#drawerSystem").textContent = match.name;
@@ -914,6 +917,7 @@ function openReview(id) {
   resetAuditorDecision();
   $("#reviewDrawer").classList.add("open");
   $("#reviewDrawer").setAttribute("aria-hidden", "false");
+  window.ProoflineUX?.drawer(id);
 }
 
 function resetAuditorDecision() {
@@ -957,6 +961,7 @@ function downloadWorkbook() {
 }
 
 function acceptAuditorWorkbook(file) {
+  if (window.ProoflineUX && !window.ProoflineUX.canReview($("#drawerTitle").textContent)) return;
   if (!file) return;
   const allowed = ["xlsx", "xls", "csv"];
   const extension = file.name.split(".").pop().toLowerCase();
@@ -972,10 +977,12 @@ function acceptAuditorWorkbook(file) {
   $("#evidenceQuestion").disabled = false;
   $("#requestEvidenceButton").disabled = false;
   $("#signOffButton").disabled = false;
+  window.ProoflineUX?.afterWorkbook();
   showToast("Workbook uploaded", "Choose an evidence request or sign-off.", "↑");
 }
 
 function requestEvidence() {
+  if (window.ProoflineUX && !window.ProoflineUX.canReview($("#drawerTitle").textContent)) return;
   const id = $("#drawerTitle").textContent;
   const question = $("#evidenceQuestion").value.trim();
   if (!question) {
@@ -992,10 +999,12 @@ function requestEvidence() {
     renderUserReviews();
   }
   closeReview();
+  window.ProoflineUX?.evidenceRequested(id, question);
   showToast("Evidence requested", `${id} is waiting for the user’s response.`, "?");
 }
 
 function signOffReview() {
+  if (window.ProoflineUX && !window.ProoflineUX.canReview($("#drawerTitle").textContent, true)) return;
   const id = $("#drawerTitle").textContent;
   const review = reviews.find((item) => item.id === id);
   if (review) {
@@ -1010,12 +1019,14 @@ function signOffReview() {
   const activeFilter = $(".filter-chip.active")?.dataset.filter || "all";
   renderQueue(activeFilter);
   closeReview();
+  window.ProoflineUX?.decisionRecorded(id);
   showToast("Audit complete", `${id} was approved and signed off.`, "✓");
 }
 
 function closeReview() {
   $("#reviewDrawer").classList.remove("open");
   $("#reviewDrawer").setAttribute("aria-hidden", "true");
+  window.ProoflineUX?.drawerClosed();
 }
 
 renderUserReviews();
@@ -1079,7 +1090,7 @@ $("#continueButton").addEventListener("click", () => {
     sourcePoc: sourcePoc?.id,
     status: "Auditor review",
     tone: "review",
-    updated: sourcePoc ? `Continued from ${sourcePoc.id}` : "Assigned just now",
+    updated: sourcePoc ? `Continued from ${sourcePoc.id}` : "Awaiting assignment",
     progress: sourcePoc ? 28 : 12,
     risk: "Pending",
   };
@@ -1101,11 +1112,12 @@ $("#continueButton").addEventListener("click", () => {
   if (currentWorkspacePage === "reviews") renderReviewRegister();
   $("#reviewCount").textContent = reviews.length;
   $("#openReviewMetric").textContent = reviews.length;
+  window.ProoflineUX?.refresh();
   closeUpload();
   resetFile();
   showToast(
     sourcePoc ? "Deployment review started" : `${newItem.lifecycle} review started`,
-    sourcePoc ? `${sourcePoc.id} evidence was carried into ${newItem.id} for ${registryRecord.id}.` : `${newItem.id} is linked to ${registryRecord.id} and is now with an auditor.`
+    sourcePoc ? `${sourcePoc.id} evidence was carried into ${newItem.id} for ${registryRecord.id}.` : `${newItem.id} is linked to ${registryRecord.id} and is ready for assignment by the team lead.`
   );
 });
 
@@ -1114,7 +1126,7 @@ document.addEventListener("click", (event) => {
   if (reviewButton) openReview(reviewButton.dataset.openReview);
 });
 $("#drawerClose").addEventListener("click", closeReview);
-$("#respondButton").addEventListener("click", () => { closeReview(); openUpload(); });
+$("#respondButton").addEventListener("click", () => window.ProoflineUX?.evidenceDialog());
 $("#downloadWorkbookButton").addEventListener("click", downloadWorkbook);
 $("#auditorFileInput").addEventListener("change", (event) => acceptAuditorWorkbook(event.target.files[0]));
 $("#requestEvidenceButton").addEventListener("click", requestEvidence);

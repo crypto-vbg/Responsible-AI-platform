@@ -1,78 +1,183 @@
-# Proofline — Responsible AI operations
+# Proofline v2 — Responsible AI workspaces
 
-Proofline is a high-fidelity, interactive prototype for managing responsible AI reviews from registration through audit closure. It brings submitters, auditors, and platform administrators into one governed workspace while keeping process configuration, communications, resources, and directory-backed access under Admin control.
+Proofline is an interactive prototype for managing responsible AI reviews from
+registration through assessment, evidence collection, and decision. Version 2
+makes the next action and current owner clear for **Submitters, Auditors, and
+Admins**, with a working team lead assignment flow.
 
-![Animated tour of the Submitter, Auditor, and Admin workspaces](docs/assets/persona-tour.gif)
+This version lives on **`codex/v2-persona-experience`**. It is maintained separately
+from `main`.
+
+## What's new in version 2
+
+- An action-focused Submitter overview with current ownership and review progress.
+- An evidence response dialog that updates the existing review.
+- Personal audit queues, search, priority filters, and useful empty states.
+- A Lead Auditor workspace with unassigned work, team queues, and workload.
+- Assignment and reassignment with an explicit recipient, reason, and history.
+- An Admin operations overview and team lead management.
+- Separate assessment, assignment, and sign-off capabilities in the preview.
+- Notifications for handoffs, evidence responses, and completed decisions.
+- A refreshed visual system, mobile navigation, visible keyboard focus, and
+  accessible assignment dialogs.
 
 ## Persona workspaces
 
-### Submitter
+### Submitter — see and complete your next action
 
-Register an AI use case, start a POC or deployment review, upload the assessment workbook, respond to evidence requests, and track progress from one workspace. A review cannot be submitted until a ready AI Registry record is selected.
+See which review needs a response, who owns the current step, and where each
+submission sits in the review journey. Respond to an evidence request without
+creating a second review, or start a review from a registered AI use case.
 
-![Submitter overview](docs/assets/submitter-overview.png)
+![Version 2 Submitter overview showing the evidence request, review journey, and current owners](docs/assets/v2/submitter-overview.png)
 
-### Auditor
+### Auditor — focus on assigned reviews
 
-Prioritize work by risk and SLA, inspect registered use cases, download and return reviewed workbooks, request evidence, sign off decisions, and access targeted News and Library content.
+An ordinary auditor sees their own queue, with search and filters for urgency
+and evidence. Review details connect the assessment workbook, evidence response,
+and next action. Assessment-only auditors can request evidence; sign-off requires
+separate decision authority.
 
-![Auditor operations](docs/assets/auditor-overview.png)
+![Version 2 ordinary Auditor workspace showing Jon Lee's personal queue and review guidance](docs/assets/v2/auditor-personal-queue.png)
 
-### Admin
+### Lead Auditor — manage ownership within the same persona
 
-Manage the platform's operating model without changing application code: lifecycle stages, timelines, routing, decision rights, AI Registry fields and options, News, Library resources, and organizational group mappings.
+The lead is one of the five Auditors, with additional responsibility for team
+assignments. Switch between **My reviews**, **Unassigned**, and **Team queue**.
+Workload reflects the open reviews in the preview.
 
-![Admin control plane](docs/assets/admin-control-plane.png)
+![Version 2 Lead Auditor workspace showing the team queue and five-person workload](docs/assets/v2/lead-auditor-workspace.png)
 
-## Core capabilities
+Assign or reassign a review by selecting a colleague and recording the reason.
+The assignee's queue, workload, notifications, and assignment history update
+together.
 
-- Configurable lifecycle stages, owners, decision rights, timelines, routing, and notifications
-- Version-aware Admin control plane with publish-state feedback
-- AI Registry with configurable fields, required-state rules, lifecycle options, and directory people pickers
-- Submission gate that requires a ready Registry record and validated workbook
-- POC and deployment paths, including continuation from an approved POC baseline
-- Auditor queue with risk, SLA, evidence, review, and sign-off interactions
-- Targeted News with statements, image attachments, and document attachments
-- Governed Library with external links and direct file uploads
-- Role-aware News and Library previews for Submitters and Auditors
-- Microsoft Entra ID and AWS IAM Identity Center-style group mappings, with membership kept read-only in the platform
-- Themed accessible dropdowns across static and dynamically rendered forms
-- Responsive persona layouts for desktop, compact browser panels, and mobile-width previews
+![Assignment dialog with auditor expertise, open review counts, and a handoff reason](docs/assets/v2/assign-review.png)
+
+### Admin — oversee operations and designate the lead
+
+The operations overview highlights reviews awaiting ownership and provides
+direct access to team settings, directory mappings, and workflow configuration.
+
+![Version 2 Admin operations overview showing active reviews, unassigned work, and team ownership](docs/assets/v2/admin-overview.png)
+
+In **Configuration → Audit team**, Admin can replace the Lead Auditor with another
+team member. The previous lead retains their Auditor access and assigned reviews
+but loses assignment controls. Sign-off authority remains separate.
+
+![Admin team management showing the designated Lead Auditor and five team members](docs/assets/v2/admin-team-management.png)
+
+<details>
+<summary>Mobile Auditor workspace</summary>
+
+The same workflows adapt to a narrow screen, with compact review cards and bottom
+navigation.
+
+<img src="docs/assets/v2/auditor-mobile.png" alt="Version 2 Auditor workspace on a 390-pixel mobile viewport" width="390">
+
+</details>
+
+## Three groups, one team lead responsibility
+
+| Directory group | Persona | Preview behavior |
+|---|---|---|
+| `RAI-Admins` | Admin | Manage configuration, access mappings, and team lead designation |
+| `RAI-Auditors` | Auditor | Assess assigned reviews; the designated team lead additionally assigns work |
+| `RAI-Submitters` | Submitter | Register use cases, submit reviews, and respond to evidence requests |
+
+The sample audit team contains **Priya Shah, Jon Lee, Lina Chen, Neha Rao, and Omar
+Hassan**. Priya starts as the Lead Auditor. Lead responsibility is an
+application-managed team setting, not a fourth persona or a separate required
+directory group.
+
+The [backend blueprint](Backend/README.md#10-identity-and-authorization) defines
+the production authorization model, data entities, API contracts, revocation
+rules, and acceptance criteria.
 
 ## Run locally
 
-No build step or package installation is required.
+No build step or package installation is required. From the repository root:
 
 ```powershell
-py -m http.server 4173
+py -m http.server 4173 --bind 127.0.0.1
 ```
 
-Open [http://localhost:4173](http://localhost:4173). Useful direct routes include:
+Open [the local preview](http://127.0.0.1:4173). Direct routes:
 
-- Submitter: `http://localhost:4173/?role=user`
-- Auditor: `http://localhost:4173/?role=auditor`
-- Admin Registry controls: `http://localhost:4173/?role=admin&page=configuration&adminTab=registry`
+- [Submitter overview](http://127.0.0.1:4173/?role=user)
+- [Auditor workspace](http://127.0.0.1:4173/?role=auditor)
+- [Admin operations](http://127.0.0.1:4173/?role=admin)
+- [Admin audit team](http://127.0.0.1:4173/?role=admin&page=configuration&adminTab=teams)
+- [Admin Registry configuration](http://127.0.0.1:4173/?role=admin&page=configuration&adminTab=registry)
 
-## Try the governed flow
+## Try the version 2 flow
 
-1. Switch to **Admin** and open **Configuration → Registry fields** to add, edit, remove, or reorder field options.
-2. Open **News**, **Library**, or **Groups** to manage targeted content and directory mappings.
-3. Switch to **Submitter**, open **AI Registry**, and create or update a use case.
-4. Select **New review**. The action remains blocked until a ready Registry record and a valid `.xlsx`, `.xls`, or `.csv` workbook are supplied.
-5. Switch to **Auditor**, open a queued review, upload the reviewed workbook, and complete an evidence or sign-off decision.
+Keep the same browser tab so the in-memory changes carry across persona switches.
+
+1. Choose **Preview as → Auditor**. Priya Shah starts as Lead Auditor.
+2. Open **Unassigned → Assign auditor**, select Omar Hassan, and add a handoff
+   reason. Confirm the assignment and inspect the updated workload/history.
+3. Use **Preview auditor** to select Omar. The review appears in his personal
+   queue; assignment controls are unavailable.
+4. Choose **Preview as → Admin → Manage team → Change team lead**. Select Jon Lee
+   and save a reason.
+5. Return to **Auditor**. Preview Priya and Jon to compare their controls:
+   Jon now manages assignments; Priya remains an Auditor.
+6. Choose **Submitter**, open the pending evidence request, and send a response.
+   The existing review returns to assessment without creating another review.
+7. Return to **Auditor** and preview Jon to inspect the response. Upload a reviewed
+   workbook before requesting more evidence or exercising his sign-off authority.
+
+To explore the original submission flow, register or select an AI use case,
+choose POC or Deployment, and supply a workbook. New reviews enter the unassigned
+queue for the Lead Auditor.
+
+## Other supported prototype workflows
+
+- Version-aware lifecycle stages, routing, service windows, and decision rights.
+- AI Registry fields, required-state rules, lifecycle choices, and owner pickers.
+- Deployment reviews continued from an approved POC.
+- News and Library content, attachments, and audience targeting.
+- Directory-backed role and scope mappings, with directory membership read-only.
+- Review search, notifications, and persona-specific content views.
+
+## Verification
+
+The local browser checks covered assignment/reassignment, lead replacement,
+ordinary auditor restrictions, sign-off authority, evidence response, and new
+submission routing. They also checked search/empty states, dialog keyboard focus,
+and navigation for all three personas at desktop and 390/768/1024-pixel widths.
+JavaScript syntax and Git whitespace checks passed.
+
+Screenshots in this README were captured from the version 2 local UI using sample
+data. Older screenshots remain in `docs/assets/`; this tour uses only
+`docs/assets/v2/`.
 
 ## Project structure
 
 ```text
-index.html                 Application shell and persona views
-styles.css                 Visual system, components, and responsive layouts
-app.js                     Prototype state and interactions
+index.html                  Application shell and persona views
+styles.css                  Original visual system and shared components
+app.js                      Prototype state and workflow integration
+experience.js               Persona queues, assignments, lead management, evidence
+experience.css              Version 2 workspace and responsive styles
 sample-reviewed-workbook.csv
-docs/assets/               README screenshots and persona animation
+Backend/README.md           Production backend blueprint
+docs/assets/v2/             Version 2 README screenshots
 ```
 
-The local `template/` source-material folder is intentionally excluded from version control.
+The local `template/` source-material folder and `.edge-qa/` verification artifacts
+are excluded from version control.
 
-## Prototype note
+## Prototype boundaries
 
-This repository is a frontend prototype with in-memory data. The Admin UX is structured for a future backend and cloud integration where published configuration, attachment storage, audit history, and Entra ID or AWS IAM Identity Center mappings would be persisted through governed APIs.
+The role/person selectors simulate identities for design review. All changes
+live in memory and reset on refresh; different tabs do not share state.
+
+Files, directory synchronization, workbook validation, and notifications are
+prototype behavior. Evidence responses retain text and file metadata in memory;
+files are not uploaded to a production evidence store. UI capability checks
+demonstrate the intended interaction and are not a security boundary.
+
+Production persistence, authentication, file scanning, and authorization on
+every API request remain defined by the backend blueprint.

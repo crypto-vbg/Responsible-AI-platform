@@ -15,8 +15,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="experience.css" />
   </head>
   <body>
+    <a class="ux-skip-link" href="#mainContent">Skip to workspace</a>
     <div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="#" aria-label="Proofline home">
@@ -73,7 +75,7 @@
         </div>
       </aside>
 
-      <main class="main-stage">
+      <main class="main-stage" id="mainContent" tabindex="-1">
         <header class="topbar">
           <div>
             <p class="eyebrow" id="roleEyebrow">SUBMITTER WORKSPACE</p>
@@ -262,7 +264,7 @@
                   </section>
                   <section class="panel inset-panel">
                     <div class="panel-heading compact"><div><p class="eyebrow">DEFAULTS</p><h2>Assignment policy</h2></div></div>
-                    <label class="field-label">Routing strategy<select><option>Group queue, then balanced workload</option><option>Round robin within owner group</option><option>Manual assignment</option></select></label>
+                    <label class="field-label">Routing strategy<select><option>Team queue, then Lead Auditor assigns</option><option>Round robin within owner group</option><option>Manual assignment</option></select></label>
                     <label class="field-label">Fallback owner<select><option>Responsible AI Office</option><option>Platform administrators</option></select></label>
                   </section>
                 </div>
@@ -571,5 +573,6 @@
 
     <div class="toast" id="toast" role="status"><span>✓</span><p><strong>Saved</strong><small>Your changes are active.</small></p></div>
     <script src="app.js"></script>
+    <script src="experience.js"></script>
   </body>
 </html>
